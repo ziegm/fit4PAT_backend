@@ -1,4 +1,4 @@
-package ca.uhn.fhir.jpa.demo;
+package ch.bfh.fit4pat;
 
 import static org.junit.Assert.assertEquals;
 
