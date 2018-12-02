@@ -1,4 +1,4 @@
-package ca.uhn.fhir.jpa.demo;
+package ch.bfh.fit4pat;
 
 import java.io.IOException;
 import java.net.ServerSocket;

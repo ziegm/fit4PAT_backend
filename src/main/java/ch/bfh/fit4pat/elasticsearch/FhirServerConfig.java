@@ -1,15 +1,19 @@
-package ca.uhn.fhir.jpa.demo;
+package ch.bfh.fit4pat.elasticsearch;
 
 import java.util.Properties;
-
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import ca.uhn.fhir.jpa.search.LuceneSearchMappingFactory;
-import ca.uhn.fhir.jpa.util.DerbyTenSevenHapiFhirDialect;
+import ca.uhn.fhir.jpa.config.BaseJavaConfigDstu3;
+import ca.uhn.fhir.jpa.dao.DaoConfig;
+import ca.uhn.fhir.jpa.search.ElasticsearchMappingProvider;
+import ca.uhn.fhir.jpa.util.SubscriptionsRequireManualActivationInterceptorDstu3;
+import ca.uhn.fhir.rest.server.interceptor.IServerInterceptor;
+import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.commons.lang3.time.DateUtils;
+import org.hibernate.dialect.PostgreSQL95Dialect;
 import org.hibernate.jpa.HibernatePersistenceProvider;
+import org.hibernate.search.elasticsearch.cfg.ElasticsearchEnvironment;
 import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,15 +21,8 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import ca.uhn.fhir.jpa.config.BaseJavaConfigDstu3;
-import ca.uhn.fhir.jpa.dao.DaoConfig;
-import ca.uhn.fhir.jpa.util.SubscriptionsRequireManualActivationInterceptorDstu3;
-import ca.uhn.fhir.rest.server.interceptor.IServerInterceptor;
-import ca.uhn.fhir.rest.server.interceptor.LoggingInterceptor;
-import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
-
 /**
- * This is the primary configuration file for the example server
+ * This is the configuration file for the example server integrating the ElasticSearch engine.
  */
 @Configuration
 @EnableTransactionManagement()
@@ -44,16 +41,16 @@ public class FhirServerConfig extends BaseJavaConfigDstu3 {
 	/**
 	 * The following bean configures the database connection. The 'url' property value of "jdbc:derby:directory:jpaserver_derby_files;create=true" indicates that the server should save resources in a
 	 * directory called "jpaserver_derby_files".
-	 * 
+	 *
 	 * A URL to a remote database could also be placed here, along with login credentials and other properties supported by BasicDataSource.
 	 */
 	@Bean(destroyMethod = "close")
 	public DataSource dataSource() {
 		BasicDataSource retVal = new BasicDataSource();
-		retVal.setDriver(new org.apache.derby.jdbc.EmbeddedDriver());
-		retVal.setUrl("jdbc:derby:directory:target/jpaserver_derby_files;create=true");
-		retVal.setUsername("");
-		retVal.setPassword("");
+		retVal.setDriver(new org.postgresql.Driver());
+		retVal.setUrl("jdbc:postgresql://localhost/fit4PAT_DB");
+		retVal.setUsername("fit4PAT");
+		retVal.setPassword("fit4PAT");
 		return retVal;
 	}
 
@@ -69,7 +66,7 @@ public class FhirServerConfig extends BaseJavaConfigDstu3 {
 
 	private Properties jpaProperties() {
 		Properties extraProperties = new Properties();
-		extraProperties.put("hibernate.dialect", DerbyTenSevenHapiFhirDialect.class.getName());
+		extraProperties.put("hibernate.dialect", PostgreSQL95Dialect.class.getName());
 		extraProperties.put("hibernate.format_sql", "true");
 		extraProperties.put("hibernate.show_sql", "false");
 		extraProperties.put("hibernate.hbm2ddl.auto", "update");
@@ -78,25 +75,19 @@ public class FhirServerConfig extends BaseJavaConfigDstu3 {
 		extraProperties.put("hibernate.cache.use_second_level_cache", "false");
 		extraProperties.put("hibernate.cache.use_structured_entries", "false");
 		extraProperties.put("hibernate.cache.use_minimal_puts", "false");
-		extraProperties.put("hibernate.search.model_mapping", LuceneSearchMappingFactory.class.getName());
-		extraProperties.put("hibernate.search.default.directory_provider", "filesystem");
-		extraProperties.put("hibernate.search.default.indexBase", "target/lucenefiles");
-		extraProperties.put("hibernate.search.lucene_version", "LUCENE_CURRENT");
-//		extraProperties.put("hibernate.search.default.worker.execution", "async");
-		return extraProperties;
-	}
+		extraProperties.put("hibernate.c3p0.min_size", "5");
+		extraProperties.put("hibernate.c3p0.max_size", "20");
+		extraProperties.put("hibernate.c3p0.timeout", "1800");
+		extraProperties.put("hibernate.c3p0.max_statements", "50");
 
-	/**
-	 * Do some fancy logging to create a nice access log that has details about each incoming request.
-	 */
-	public IServerInterceptor loggingInterceptor() {
-		LoggingInterceptor retVal = new LoggingInterceptor();
-		retVal.setLoggerName("fhirtest.access");
-		retVal.setMessageFormat(
-				"Path[${servletPath}] Source[${requestHeader.x-forwarded-for}] Operation[${operationType} ${operationName} ${idOrResourceName}] UA[${requestHeader.user-agent}] Params[${requestParameters}] ResponseEncoding[${responseEncodingNoDefault}]");
-		retVal.setLogExceptions(true);
-		retVal.setErrorMessageFormat("ERROR - ${requestVerb} ${requestUrl}");
-		return retVal;
+		// the belowing properties are used for ElasticSearch integration
+		extraProperties.put(ElasticsearchEnvironment.ANALYSIS_DEFINITION_PROVIDER, ElasticsearchMappingProvider.class.getName());
+		extraProperties.put("hibernate.search.default.indexmanager", "elasticsearch");
+		extraProperties.put("hibernate.search.default.elasticsearch.host", "http://127.0.0.1:9200");
+		extraProperties.put("hibernate.search.default.elasticsearch.index_schema_management_strategy", "CREATE");
+		extraProperties.put("hibernate.search.default.elasticsearch.index_management_wait_timeout", "10000");
+		extraProperties.put("hibernate.search.default.elasticsearch.required_index_status", "yellow");
+		return extraProperties;
 	}
 
 	/**

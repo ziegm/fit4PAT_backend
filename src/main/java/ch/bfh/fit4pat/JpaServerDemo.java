@@ -1,8 +1,15 @@
 
-package ca.uhn.fhir.jpa.demo;
+package ch.bfh.fit4pat;
 
 import java.util.Collection;
 import java.util.List;
+
+import ca.uhn.fhir.jpa.provider.dstu3.TerminologyUploaderProviderDstu3;
+import ca.uhn.fhir.jpa.subscription.email.SubscriptionEmailInterceptor;
+import ca.uhn.fhir.jpa.subscription.resthook.SubscriptionRestHookInterceptor;
+import ca.uhn.fhir.jpa.subscription.websocket.SubscriptionWebsocketInterceptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 
@@ -20,14 +27,13 @@ import ca.uhn.fhir.jpa.provider.JpaSystemProviderDstu2;
 import ca.uhn.fhir.jpa.provider.dstu3.JpaConformanceProviderDstu3;
 import ca.uhn.fhir.jpa.provider.dstu3.JpaSystemProviderDstu3;
 import ca.uhn.fhir.jpa.search.DatabaseBackedPagingProvider;
-import ca.uhn.fhir.model.api.IResource;
 import ca.uhn.fhir.model.dstu2.composite.MetaDt;
 import ca.uhn.fhir.narrative.DefaultThymeleafNarrativeGenerator;
 import ca.uhn.fhir.rest.api.EncodingEnum;
 import ca.uhn.fhir.rest.server.*;
 import ca.uhn.fhir.rest.server.interceptor.IServerInterceptor;
 
-public class JpaServerDemoDstu2 extends RestfulServer {
+public class JpaServerDemo extends RestfulServer {
 
 	private static final long serialVersionUID = 1L;
 
@@ -44,7 +50,7 @@ public class JpaServerDemoDstu2 extends RestfulServer {
 		 *
 		 * If you want to use DSTU1 instead, change the following line, and change the 2 occurrences of dstu2 in web.xml to dstu1
 		 */
-		FhirVersionEnum fhirVersion = FhirVersionEnum.DSTU2;
+		FhirVersionEnum fhirVersion = FhirVersionEnum.DSTU3;
 		setFhirContext(new FhirContext(fhirVersion));
 
 		// Get the spring context from the web container (it's declared in web.xml)
@@ -150,9 +156,15 @@ public class JpaServerDemoDstu2 extends RestfulServer {
 		 * so it is a potential security vulnerability. Consider using an AuthorizationInterceptor
 		 * with this feature.
 		 */
-		//if (fhirVersion == FhirVersionEnum.DSTU3) {
-		//	 registerProvider(myAppCtx.getBean(TerminologyUploaderProviderDstu3.class));
-		//}
+		if (fhirVersion == FhirVersionEnum.DSTU3) {
+			 registerProvider(myAppCtx.getBean(TerminologyUploaderProviderDstu3.class));
+		}
+
+		// Enable various subscription types
+		registerInterceptor(myAppCtx.getBean(SubscriptionWebsocketInterceptor.class));
+		registerInterceptor(myAppCtx.getBean(SubscriptionRestHookInterceptor.class));
+		registerInterceptor(myAppCtx.getBean(SubscriptionEmailInterceptor.class));
+
 	}
 
 }
