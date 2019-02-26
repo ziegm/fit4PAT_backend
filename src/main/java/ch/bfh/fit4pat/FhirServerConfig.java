@@ -7,7 +7,6 @@ import ca.uhn.fhir.jpa.util.SubscriptionsRequireManualActivationInterceptorDstu3
 import ca.uhn.fhir.rest.server.interceptor.IServerInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.LoggingInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.hibernate.dialect.PostgreSQL95Dialect;
 import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +15,8 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.Properties;
@@ -44,12 +45,14 @@ public class FhirServerConfig extends BaseJavaConfigDstu3 {
 	 */
 	@Bean(destroyMethod = "close")
 	public DataSource dataSource() {
-		BasicDataSource retVal = new BasicDataSource();
-		retVal.setDriver(new org.postgresql.Driver());
-		retVal.setUrl("jdbc:postgresql://localhost/fit4PAT_DB");
-		retVal.setUsername("fit4PAT");
-		retVal.setPassword("fit4PAT");
-		return retVal;
+		try {
+			InitialContext context = new InitialContext();
+			return (DataSource) context.lookup( "java:/comp/env/jdbc/postgres" );
+		} catch (NamingException e) {
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 	@Override
