@@ -51,7 +51,6 @@ public class FhirServerConfig extends BaseJavaConfigDstu3 {
 		} catch (NamingException e) {
 			e.printStackTrace();
 		}
-
 		return null;
 	}
 
