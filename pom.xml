@@ -19,7 +19,7 @@
 	</repositories>
 
 	<properties>
-		<jetty_version>9.4.12.v20180830</jetty_version>
+		<jetty_version>9.4.34.v20201102</jetty_version>
 		<hapi_fhir_version>3.6.0</hapi_fhir_version>
 		<thymeleaf-version>3.0.9.RELEASE</thymeleaf-version>
 		<ebay_cors_filter_version>1.0.1</ebay_cors_filter_version>
