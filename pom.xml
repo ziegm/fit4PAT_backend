@@ -20,7 +20,7 @@
 
 	<properties>
 		<jetty_version>9.4.12.v20180830</jetty_version>
-		<hapi_fhir_version>3.6.0</hapi_fhir_version>
+		<hapi_fhir_version>5.4.0</hapi_fhir_version>
 		<thymeleaf-version>3.0.9.RELEASE</thymeleaf-version>
 		<ebay_cors_filter_version>1.0.1</ebay_cors_filter_version>
 		<spring_version>5.0.8.RELEASE</spring_version>
