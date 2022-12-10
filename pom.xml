@@ -23,7 +23,7 @@
 		<hapi_fhir_version>3.6.0</hapi_fhir_version>
 		<thymeleaf-version>3.0.9.RELEASE</thymeleaf-version>
 		<ebay_cors_filter_version>1.0.1</ebay_cors_filter_version>
-		<spring_version>5.0.8.RELEASE</spring_version>
+		<spring_version>6.0.0</spring_version>
 		<derby_version>10.14.2.0</derby_version>
 		<ph_schematron_version>5.0.4</ph_schematron_version>
 	</properties>
